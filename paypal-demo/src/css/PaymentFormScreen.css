@@ -1,0 +1,11 @@
+.payment-form-screen {
+    min-height: 100vh; /* Establece el mínimo del alto al 100% del viewport */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: #f1f1f1;
+    padding: 20px;
+  }
+  
