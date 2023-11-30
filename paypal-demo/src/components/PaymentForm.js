@@ -4,8 +4,9 @@ const PaymentForm = () => {
   const [clientToken, setClientToken] = useState('');
   const [isTokenLoaded, setIsTokenLoaded] = useState(false);
   const [paymentResult, setPaymentResult] = useState(null);
+  const [error, setError] = useState(null);
   const dropinRef = useRef(null);
-  const dropinInstance = useRef(null); // Ref para la instancia de Braintree
+  const dropinInstance = useRef(null);
 
   useEffect(() => {
     async function fetchTokenFromServer() {
@@ -23,6 +24,7 @@ const PaymentForm = () => {
         setClientToken(fetchedToken);
         setIsTokenLoaded(true);
       } catch (error) {
+        setError('Error al obtener el token del cliente: ' + error.message);
         console.error('Error al obtener el token del cliente:', error);
       }
     }
@@ -33,33 +35,35 @@ const PaymentForm = () => {
   useEffect(() => {
     async function setupBraintree() {
       if (!window.braintree) {
+        setError('Braintree no se ha cargado correctamente');
         console.error('Braintree no se ha cargado correctamente');
         return;
       }
 
       if (!clientToken || !isTokenLoaded) {
+        setError('El token del cliente no está definido o no se ha cargado');
         console.error('El token del cliente no está definido o no se ha cargado');
         return;
       }
 
       if (!dropinRef.current) {
+        setError('Contenedor no disponible');
         console.error('Contenedor no disponible');
         return;
       }
 
       try {
-        dropinRef.current.innerHTML = ''; // Asegúrate de que el contenedor esté vacío
+        dropinRef.current.innerHTML = '';
 
         dropinInstance.current = await window.braintree.dropin.create({
           authorization: clientToken,
           container: dropinRef.current,
-          // Configuración adicional para PayPal y Google Pay
           paypal: {
             flow: 'vault'
           },
           googlePay: {
-            environment: 'TEST', // Usa 'PRODUCTION' en entorno de producción
-            merchantId: 'your-merchant-id', // Sustituye por tu Merchant ID
+            environment: 'TEST',
+            merchantId: 'your-merchant-id',
             buttonColor: 'black',
             buttonType: 'long'
           },
@@ -72,6 +76,7 @@ const PaymentForm = () => {
 
         console.log('Braintree configurado correctamente');
       } catch (error) {
+        setError('Error al configurar Braintree: ' + error.message);
         console.error('Error al configurar Braintree:', error);
       }
     }
@@ -83,7 +88,10 @@ const PaymentForm = () => {
 
   const handlePayment = async () => {
     try {
+      setError(null);
+
       if (!dropinInstance.current) {
+        setError('Instancia de Braintree no inicializada');
         console.error('Instancia de Braintree no inicializada');
         return;
       }
@@ -95,17 +103,20 @@ const PaymentForm = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ nonceFromTheClient: nonce, amount: '10.00' }), // Establece el monto a pagar
+        body: JSON.stringify({ nonceFromTheClient: nonce, amount: '5001.00' }),
       });
 
       if (response.ok) {
         const result = await response.json();
-        setPaymentResult(result.transactionId); // Establecer el resultado del pago
+        setPaymentResult(result.transactionId);
         console.log('Pago exitoso. ID de transacción:', result.transactionId);
       } else {
-        console.error('Error al procesar el pago');
+        const errorResponse = await response.json();
+        setError('Error en la transacción: ' + errorResponse.error);
+        console.error('Error al procesar el pago:', errorResponse.error);
       }
     } catch (error) {
+      setError('Error al enviar el pago: ' + error.message);
       console.error('Error al enviar el pago:', error);
     }
   };
@@ -114,7 +125,8 @@ const PaymentForm = () => {
     <div className='payment-form-div'>
       <h2>Payment Form</h2>
       <div ref={dropinRef}></div>
-      <button onClick={handlePayment}>Enviar Pago</button>
+      <button onClick={handlePayment}>Pay</button>
+      {error && <p>{error}</p>}
       {paymentResult && <p>Successful payment. Transaction's ID: {paymentResult}</p>}
     </div>
   );
