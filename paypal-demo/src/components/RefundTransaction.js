@@ -31,15 +31,15 @@ const RefundTransaction = () => {
 
   return (
     <div>
-      <h2>Reembolso de Transacción</h2>
+      <h2>Do you want to refund the transaction?</h2>
       <input
         type="text"
-        placeholder="ID de transacción"
+        placeholder="Transaction's ID"
         value={transactionId}
         onChange={(e) => setTransactionId(e.target.value)}
       />
-      <button onClick={handleRefund}>Reembolsar</button>
-      {refundId && <p>ID de reembolso: {refundId}</p>}
+      <button className='refund-button' onClick={handleRefund}>Reembolsar</button>
+      {refundId && <p>Refund successfully completed: {refundId}</p>}
       {error && <p>Error: {error}</p>}
     </div>
   );

@@ -9,7 +9,7 @@ body, html {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 95vh;
   background-image: url(''); /* Cambia por tu imagen de fondo */
   background-size: cover;
   background-position: center;

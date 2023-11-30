@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 const PaymentForm = () => {
   const [clientToken, setClientToken] = useState('');
   const [isTokenLoaded, setIsTokenLoaded] = useState(false);
+  const [paymentResult, setPaymentResult] = useState(null);
   const dropinRef = useRef(null);
   const dropinInstance = useRef(null); // Ref para la instancia de Braintree
 
@@ -35,20 +36,20 @@ const PaymentForm = () => {
         console.error('Braintree no se ha cargado correctamente');
         return;
       }
-  
+
       if (!clientToken || !isTokenLoaded) {
         console.error('El token del cliente no está definido o no se ha cargado');
         return;
       }
-  
+
       if (!dropinRef.current) {
         console.error('Contenedor no disponible');
         return;
       }
-  
+
       try {
         dropinRef.current.innerHTML = ''; // Asegúrate de que el contenedor esté vacío
-  
+
         dropinInstance.current = await window.braintree.dropin.create({
           authorization: clientToken,
           container: dropinRef.current,
@@ -68,13 +69,13 @@ const PaymentForm = () => {
             }
           }
         });
-  
+
         console.log('Braintree configurado correctamente');
       } catch (error) {
         console.error('Error al configurar Braintree:', error);
       }
     }
-  
+
     if (isTokenLoaded) {
       setupBraintree();
     }
@@ -99,6 +100,7 @@ const PaymentForm = () => {
 
       if (response.ok) {
         const result = await response.json();
+        setPaymentResult(result.transactionId); // Establecer el resultado del pago
         console.log('Pago exitoso. ID de transacción:', result.transactionId);
       } else {
         console.error('Error al procesar el pago');
@@ -109,11 +111,11 @@ const PaymentForm = () => {
   };
 
   return (
-    <div>
-      <h2>Formulario de Pago</h2>
+    <div className='payment-form-div'>
+      <h2>Payment Form</h2>
       <div ref={dropinRef}></div>
       <button onClick={handlePayment}>Enviar Pago</button>
-      {/* Agrega aquí cualquier otro contenido o botones necesarios */}
+      {paymentResult && <p>Successful payment. Transaction's ID: {paymentResult}</p>}
     </div>
   );
 };

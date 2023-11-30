@@ -7,11 +7,10 @@ const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleLogin = (password) => {
-    // Validación de la contraseña: aquí podrías realizar la autenticación, por ejemplo, con una contraseña específica
     if (password === '1') {
       setIsLoggedIn(true);
     } else {
-      alert('Contraseña incorrecta. Por favor, inténtalo de nuevo.');
+      alert('Wrong password. Try again.');
     }
   };
 

@@ -7,7 +7,8 @@ import RefundTransaction from '../components/RefundTransaction';
 const PaymentFormScreen = () => {
   return (
     <div className="payment-form-screen">
-      <h2>¡Bienvenido! Ingresa tu información de pago</h2>
+      <span>Back-end: Node.JS (v16.16.0)</span>
+      <span>Front-end: React</span>
       <PaymentForm />
       <RefundTransaction />
     </div>
