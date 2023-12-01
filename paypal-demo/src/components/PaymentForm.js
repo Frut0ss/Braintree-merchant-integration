@@ -5,6 +5,7 @@ const PaymentForm = () => {
   const [isTokenLoaded, setIsTokenLoaded] = useState(false);
   const [paymentResult, setPaymentResult] = useState(null);
   const [error, setError] = useState(null);
+  const [amount, setAmount] = useState('');
   const dropinRef = useRef(null);
   const dropinInstance = useRef(null);
 
@@ -18,14 +19,13 @@ const PaymentForm = () => {
 
         const response = await fetch(serverURL);
         if (!response.ok) {
-          throw new Error('Error al obtener el token del cliente');
+          throw new Error('Error getting token from client');
         }
         const { clientToken: fetchedToken } = await response.json();
         setClientToken(fetchedToken);
         setIsTokenLoaded(true);
       } catch (error) {
-        setError('Error al obtener el token del cliente: ' + error.message);
-        console.error('Error al obtener el token del cliente:', error);
+        setError('Error getting token from client: ' + error.message);
       }
     }
 
@@ -34,24 +34,6 @@ const PaymentForm = () => {
 
   useEffect(() => {
     async function setupBraintree() {
-      if (!window.braintree) {
-        setError('Braintree no se ha cargado correctamente');
-        console.error('Braintree no se ha cargado correctamente');
-        return;
-      }
-
-      if (!clientToken || !isTokenLoaded) {
-        setError('El token del cliente no está definido o no se ha cargado');
-        console.error('El token del cliente no está definido o no se ha cargado');
-        return;
-      }
-
-      if (!dropinRef.current) {
-        setError('Contenedor no disponible');
-        console.error('Contenedor no disponible');
-        return;
-      }
-
       try {
         dropinRef.current.innerHTML = '';
 
@@ -73,11 +55,8 @@ const PaymentForm = () => {
             }
           }
         });
-
-        console.log('Braintree configurado correctamente');
       } catch (error) {
-        setError('Error al configurar Braintree: ' + error.message);
-        console.error('Error al configurar Braintree:', error);
+        console.error('Braintree setup error', error);
       }
     }
 
@@ -89,42 +68,52 @@ const PaymentForm = () => {
   const handlePayment = async () => {
     try {
       setError(null);
-
+  
       if (!dropinInstance.current) {
-        setError('Instancia de Braintree no inicializada');
-        console.error('Instancia de Braintree no inicializada');
+        console.error('Braintree instance not initialized');
         return;
       }
-
+  
       const { nonce } = await dropinInstance.current.requestPaymentMethod();
-
+  
       const response = await fetch('http://localhost:3001/make_payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ nonceFromTheClient: nonce, amount: '5001.00' }),
+        body: JSON.stringify({ nonceFromTheClient: nonce, amount }),
       });
-
+  
       if (response.ok) {
         const result = await response.json();
         setPaymentResult(result.transactionId);
-        console.log('Pago exitoso. ID de transacción:', result.transactionId);
-      } else {
+        console.log('Successful payment. Transaction ID:', result.transactionId);
+      } else if (response.status === 500) {
         const errorResponse = await response.json();
-        setError('Error en la transacción: ' + errorResponse.error);
-        console.error('Error al procesar el pago:', errorResponse.error);
+  
+        if (errorResponse.error && errorResponse.error.includes('Braintree')) {
+          setError('Transaction error: ' + errorResponse.error);
+          console.error('Transaction error:', errorResponse.error);
+        } else {
+          setError('Transaction error occurred. Please try again later.');
+          console.error('Transaction error:', errorResponse.error);
+        }
       }
     } catch (error) {
-      setError('Error al enviar el pago: ' + error.message);
-      console.error('Error al enviar el pago:', error);
+      console.error('Payment submission error:', error);
     }
-  };
-
+  };  
+  
   return (
     <div className='payment-form-div'>
       <h2>Payment Form</h2>
       <div ref={dropinRef}></div>
+      <input
+        type="text"
+        placeholder="Enter amount"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+      />
       <button onClick={handlePayment}>Pay</button>
       {error && <p>{error}</p>}
       {paymentResult && <p>Successful payment. Transaction's ID: {paymentResult}</p>}

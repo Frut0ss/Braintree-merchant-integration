@@ -46,8 +46,8 @@ app.post('/make_payment', async (req, res) => {
             
             res.json({ success: true, transactionId: result.transaction.id });
         } else {
-            console.error('Error en la transacción:', result.message);
-            res.status(500).json({ error: 'Error en la transacción', message: result.message });
+            console.error('Transaction error:', result.message);
+            res.status(500).json({ error: 'Transaction error', message: result.message });
         }
     } catch (error) {
         console.error('Error al procesar el pago:', error);

@@ -38,7 +38,7 @@ const RefundTransaction = () => {
         value={transactionId}
         onChange={(e) => setTransactionId(e.target.value)}
       />
-      <button className='refund-button' onClick={handleRefund}>Reimburse</button>
+      <button className='refund-button' onClick={handleRefund}>Refund</button>
       {refundId && <p>Refund successfully completed: {refundId}</p>}
       {error && <p>Error: {error}</p>}
     </div>
