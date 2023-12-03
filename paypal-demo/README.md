@@ -1,6 +1,7 @@
 # Welcome to Alejandro Frutos's Demo
 
 **Access password for the demo is "1234"**
+
 **Node.JS (v16.16.0)**
 
 For the correct installation of the project, follow these steps:
