@@ -7,7 +7,7 @@ const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleLogin = (password) => {
-    if (password === '1') {
+    if (password === '1234') {
       setIsLoggedIn(true);
     } else {
       alert('Wrong password. Try again.');

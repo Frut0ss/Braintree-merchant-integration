@@ -25,35 +25,41 @@ app.get('/get_client_token', async (req, res) => {
 
 app.post('/make_payment', async (req, res) => {
     try {
-        const { nonceFromTheClient, amount } = req.body;
-        console.log('Nonce recibido:', nonceFromTheClient, 'Monto:', amount);
-
-        const result = await gateway.transaction.sale({
-            amount,
-            paymentMethodNonce: nonceFromTheClient,
-            options: {
-                submitForSettlement: true,
-                storeInVaultOnSuccess: true
-            },
-        });
-
-        console.log('Resultado de Braintree:', result);
-
-        if (result.success) {
-            // Cambiar el estado de la transacción a "settled"
-            const settledTransaction = await gateway.testing.settle(result.transaction.id);
-            console.log('Transacción establecida:', settledTransaction);
-            
-            res.json({ success: true, transactionId: result.transaction.id });
+      const { nonceFromTheClient, amount } = req.body;
+      console.log('Nonce recibido:', nonceFromTheClient, 'Monto:', amount);
+  
+      const result = await gateway.transaction.sale({
+        amount,
+        paymentMethodNonce: nonceFromTheClient,
+        options: {
+          submitForSettlement: true,
+          storeInVaultOnSuccess: true
+        },
+      });
+  
+      console.log('Resultado de Braintree:', result);
+  
+      if (result.success) {
+        const settledTransaction = await gateway.testing.settle(result.transaction.id);
+        console.log('Transacción establecida:', settledTransaction);
+        
+        res.json({ success: true, transactionId: result.transaction.id });
+      } else {
+        console.error('Transaction error:', result.message);
+        if (result.transaction && result.transaction.processorResponseText) {
+          res.status(500).json({
+            error: 'Transaction error',
+            message: result.transaction.processorResponseText
+          });
         } else {
-            console.error('Transaction error:', result.message);
-            res.status(500).json({ error: 'Transaction error', message: result.message });
+          res.status(500).json({ error: 'Transaction error', message: result.message });
         }
+      }
     } catch (error) {
-        console.error('Error al procesar el pago:', error);
-        res.status(500).json({ error: 'Error al procesar el pago' });
+      console.error('Error al procesar el pago:', error);
+      res.status(500).json({ error: 'Error al procesar el pago' });
     }
-});
+  });
 
 app.post('/refund_transaction', async (req, res) => {
     try {
